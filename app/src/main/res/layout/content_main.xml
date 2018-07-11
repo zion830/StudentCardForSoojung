@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:gravity="center"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context=".MainActivity"
+    tools:showIn="@layout/activity_main">
+
+    <TextView
+        android:id="@+id/my_card_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="@color/colorPrimaryDark"
+        android:text="나의 학생증"
+        android:textStyle="bold"
+        android:textSize="30sp" />
+
+    <ImageView
+        android:id="@+id/card_img"
+        android:layout_width="250dp"
+        android:layout_height="160dp"
+        android:layout_below="@+id/my_card_text"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="30dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/img_background"
+        android:padding="5dp"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        android:src="@drawable/info_test" />
+
+    <Button
+        android:id="@+id/change_pic_btn"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/card_img"
+        android:layout_centerHorizontal="true"
+        android:layout_marginVertical="5dp"
+        android:background="@drawable/custom_btn"
+        android:drawableLeft="@drawable/ic_outline_add_photo_24px"
+        android:drawablePadding="7dp"
+        android:gravity="center"
+        android:onClick="changePicBtnOnClicked"
+        android:paddingHorizontal="60dp"
+        android:paddingVertical="5dp"
+        android:text="새로운 학생증 등록"
+        android:textColor="#84b6e0"
+        android:textSize="16dp" />
+
+    <Button
+        android:id="@+id/link_btn"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/change_pic_btn"
+        android:layout_centerHorizontal="true"
+        android:layout_marginVertical="7dp"
+        android:background="@drawable/custom_btn"
+        android:drawableLeft="@drawable/ic_outline_link_24px"
+        android:drawablePadding="7dp"
+        android:paddingHorizontal="60dp"
+        android:onClick="getCardBtnOnClicked"
+        android:paddingVertical="5dp"
+        android:text="모바일 학생증 발급"
+        android:textColor="#84b6e0"
+        android:textSize="16dp" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/link_btn"
+        android:gravity="center"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:text="밝기 자동 조절"
+            android:textSize="15sp" />
+
+        <Switch
+            android:id="@+id/on_off_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:switchMinWidth="30dp" />
+    </LinearLayout>
+</RelativeLayout>
