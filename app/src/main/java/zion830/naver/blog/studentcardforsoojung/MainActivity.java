@@ -180,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (requestCode == Crop.REQUEST_CROP) {
                 handleCrop(resultCode, data);
             }
-        } else {
+        } else if (resultCode == -1 && requestCode == Crop.REQUEST_PICK){
             cardImg.setImageURI(data.getData());
 
             try {
