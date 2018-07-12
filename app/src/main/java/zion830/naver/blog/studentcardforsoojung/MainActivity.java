@@ -1,10 +1,12 @@
 package zion830.naver.blog.studentcardforsoojung;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -26,15 +28,16 @@ import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import com.soundcloud.android.crop.Crop;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_EXTERNAL_STORAGE = 0;
-    private static final int PICK_IMAGE = 1;
-    private static final int CROP_IMAGE = 2;
 
-    private Uri imgUri;
+    private boolean isCroped;
     private Switch onOffSwitch;
     private SharedPreferences pref;
     private ImageView cardImg;
@@ -130,7 +133,9 @@ public class MainActivity extends AppCompatActivity {
 
         if (id == R.id.action_settings) {
             final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-            builder.setMessage("수정이들의 편리한 학생증 라이프에 보탬이 되기를 바랍니다~\n\n배포일자 : 2018-7-12")
+            builder.setTitle("앱 정보")
+                    .setMessage("수정이들의 편리한 학생증 라이프에 보탬이 되기를 바랍니다~ 오늘 하루도 화이팅♡" +
+                            "\n\n▷ 배포일자\n2018-7-13\n▷ 사용한 라이브러리\nhttps://github.com/jdamcd/android-crop\n▷ 앱 아이콘 출처\nhttps://www.flaticon.com/free-icon/id-card_660446\n▷ 피드백\ndrawcoding@gmail.com")
                     .setNegativeButton("확인", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -144,40 +149,68 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void changePicBtnOnClicked(View view) {
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
-        startActivityForResult(intent, PICK_IMAGE);
+        CharSequence[] charSequences = {"이미지 바로 등록", "이미지 편집 후 등록"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("학생증 이미지 선택")
+                .setIcon(R.drawable.app_icon)
+                .setItems(charSequences, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        isCroped = (which != 0);
+
+                        Crop.pickImage(MainActivity.this);
+                    }
+                }).setNegativeButton("취소", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        }).show();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        Log.d("경로", resultCode + " " + requestCode);
-        if (resultCode == -1 && requestCode != 2) {
-            imgUri = data.getData();
+        Log.d("경로", "resultCode : " + resultCode + " requestCode : " + requestCode);
 
-            Intent crop = new Intent("com.android.camera.action.CROP");
-            crop.setDataAndType(imgUri, "image/*");
-
-            crop.putExtra("outputX", 690);
-            crop.putExtra("outputY", 420);
-            crop.putExtra("aspectX", 69);
-            crop.putExtra("aspectY", 42);
-            crop.putExtra("scale", true);
-            crop.putExtra("return-data", true);
-
-            startActivityForResult(crop, CROP_IMAGE);
-        } else if (requestCode == CROP_IMAGE && resultCode != 0) { //크롭 된 후
-            String filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + System.currentTimeMillis() + ".jpg";
-
-            final Bundle extras = data.getExtras();
-            if (extras != null) {
-                Bitmap photo = extras.getParcelable("data");
-                cardImg.setImageBitmap(photo);
-
-                saveImgPreferences(photo);
+        if (isCroped) {
+            if (requestCode == Crop.REQUEST_PICK && resultCode == RESULT_OK) {
+                beginCrop(data.getData());
+            } else if (requestCode == Crop.REQUEST_CROP) {
+                handleCrop(resultCode, data);
             }
+        } else {
+            cardImg.setImageURI(data.getData());
+
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
+                saveImgPreferences(bitmap);
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(getApplicationContext(), "이미지 등록 중 오류가 발생했습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void beginCrop(Uri source) {
+        Uri destination = Uri.fromFile(new File(getCacheDir(), "cropped"));
+        Crop.of(source, destination).withAspect(69, 42).start(this);
+    }
+
+    private void handleCrop(int resultCode, Intent result) {
+        if (resultCode == RESULT_OK) {
+            cardImg.setImageURI(Crop.getOutput(result));
+
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Crop.getOutput(result));
+                saveImgPreferences(bitmap);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        } else if (resultCode == Crop.RESULT_ERROR) {
+            Toast.makeText(this, Crop.getError(result).getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
